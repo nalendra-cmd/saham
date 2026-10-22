@@ -145,4 +145,598 @@
                     </h2>
                     <span class="relative flex h-2 w-2">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span class="relative inline-
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                </div>
+                <div class="overflow-y-auto flex-1 pr-1" id="runningTradeContainer">
+                    <table class="w-full text-[11px]">
+                        <thead class="text-slate-400 border-b border-slate-700 sticky top-0 bg-slate-800">
+                            <tr>
+                                <th class="pb-1 text-left">Waktu</th>
+                                <th class="pb-1 text-left">Kode</th>
+                                <th class="pb-1 text-right">Harga</th>
+                                <th class="pb-1 text-right">Vol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="runningTradeBody" class="divide-y divide-slate-700/30">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CENTER COLUMN: INTERACTIVE CHART & SIGNAL (6 COLS) -->
+        <div class="lg:col-span-6 flex flex-col space-y-3">
+            
+            <!-- Chart Container -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-4 flex-1 flex flex-col min-h-[380px]">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center space-x-2">
+                        <h2 id="chartTitle" class="text-lg font-bold text-white">BBCA Chart</h2>
+                        <span id="chartBadge" class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">+1.25%</span>
+                    </div>
+                    <div class="flex items-center space-x-1 bg-slate-900/60 p-1 rounded-lg border border-slate-700/60">
+                        <button onclick="setChartType('line')" id="btnLine" class="px-2.5 py-1 text-xs font-medium rounded text-slate-400 hover:text-white transition">Line</button>
+                        <button onclick="setChartType('bar')" id="btnBar" class="px-2.5 py-1 text-xs font-medium rounded bg-indigo-600 text-white transition">Bar/Candle</button>
+                        <span class="text-slate-600">|</span>
+                        <button onclick="setChartTimeframe('1D')" class="px-2 py-1 text-xs text-slate-400 hover:text-white">1D</button>
+                        <button onclick="setChartTimeframe('1W')" class="px-2 py-1 text-xs text-indigo-400 font-bold">1W</button>
+                        <button onclick="setChartTimeframe('1M')" class="px-2 py-1 text-xs text-slate-400 hover:text-white">1M</button>
+                    </div>
+                </div>
+
+                <div class="relative flex-1 w-full h-full min-h-[300px]">
+                    <canvas id="stockChart"></canvas>
+                </div>
+            </div>
+
+            <!-- AI Signal & Technical Indicators -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/50">
+                    <div class="text-xs text-slate-400 mb-1">RSI (14 Period)</div>
+                    <div class="flex items-center justify-between">
+                        <span id="rsiValue" class="text-lg font-bold text-white">58.4</span>
+                        <span id="rsiStatus" class="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 font-semibold">NEUTRAL</span>
+                    </div>
+                    <div class="w-full bg-slate-700 rounded-full h-1.5 mt-2">
+                        <div id="rsiBar" class="bg-indigo-500 h-1.5 rounded-full" style="width: 58%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/50">
+                    <div class="text-xs text-slate-400 mb-1">MACD Indicator</div>
+                    <div class="flex items-center justify-between">
+                        <span id="macdValue" class="text-lg font-bold text-emerald-400">+14.2</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">BULLISH</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-1">Histogram konsisten positif</div>
+                </div>
+
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/50 flex flex-col justify-between">
+                    <div class="text-xs text-slate-400">Rekomendasi AI Signal</div>
+                    <div class="flex items-center space-x-2 my-1">
+                        <div id="aiSignalBadge" class="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-extrabold text-sm px-3 py-1 rounded-md flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-4 h-4"></i> ACCUMULATE BUY
+                        </div>
+                    </div>
+                    <div id="aiConfidence" class="text-[10px] text-slate-400">Confidence Rate: 84%</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: ORDER BOOK & BUY/SELL PANEL (3 COLS) -->
+        <div class="lg:col-span-3 flex flex-col space-y-3">
+            
+            <!-- Order Book -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-3 flex-1 flex flex-col">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="layers" class="w-4 h-4 text-indigo-400"></i> Order Book (Bid / Offer)
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-slate-400 pb-1 border-b border-slate-700">
+                    <div class="flex justify-between px-1"><span>Vol Bid</span> <span>Bid</span></div>
+                    <div class="flex justify-between px-1"><span>Offer</span> <span>Vol Off</span></div>
+                </div>
+
+                <div class="divide-y divide-slate-700/30 flex-1 overflow-y-auto" id="orderBookContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Execution Panel (Buy/Sell) -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-4">
+                <!-- Tab Switching -->
+                <div class="grid grid-cols-2 gap-2 mb-3 bg-slate-900 p-1 rounded-lg">
+                    <button id="tabBuy" onclick="setOrderType('BUY')" class="py-1.5 text-xs font-bold rounded-md bg-emerald-600 text-white transition">BELI (BUY)</button>
+                    <button id="tabSell" onclick="setOrderType('SELL')" class="py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition">JUAL (SELL)</button>
+                </div>
+
+                <form onsubmit="executeTrade(event)" class="space-y-3">
+                    <div>
+                        <label class="text-[11px] text-slate-400 block mb-1">Harga Pelaksanaan (Rp)</label>
+                        <input type="number" id="orderPriceInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-bold text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                            <span>Jumlah (Lot)</span>
+                            <span id="maxLotDisplay" class="text-indigo-400">Max: 0 Lot</span>
+                        </div>
+                        <input type="number" id="orderLotInput" min="1" value="1" oninput="calculateTotal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-bold text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-700/60 space-y-1 text-xs">
+                        <div class="flex justify-between text-slate-400">
+                            <span>Total Nilai:</span>
+                            <span id="orderTotalValue" class="font-bold text-white">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400 text-[10px]">
+                            <span>Biaya Broker (0.15%):</span>
+                            <span id="orderFee">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnSubmitOrder" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-emerald-900/30">
+                        KIRIM ORDER BELI
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- PORTFOLIO SECTION -->
+    <section class="max-w-[1920px] w-full mx-auto p-2 lg:p-4 pt-0">
+        <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                    <i data-lucide="briefcase" class="w-4 h-4 text-indigo-400"></i> Portofolio Saham Saya
+                </h2>
+                <div class="flex items-center space-x-4 text-xs">
+                    <div>Total Investasi: <span id="portfolioValue" class="font-bold text-white">Rp 0</span></div>
+                    <div>Unrealized P/L: <span id="portfolioPnL" class="font-bold text-slate-400">Rp 0 (0%)</span></div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                    <thead class="text-slate-400 border-b border-slate-700 bg-slate-900/50">
+                        <tr>
+                            <th class="p-2.5">Emiten</th>
+                            <th class="p-2.5 text-right">Jumlah Lot</th>
+                            <th class="p-2.5 text-right">Rata-Rata Beli</th>
+                            <th class="p-2.5 text-right">Harga Saat Ini</th>
+                            <th class="p-2.5 text-right">Total Investasi</th>
+                            <th class="p-2.5 text-right">Profit / Loss</th>
+                            <th class="p-2.5 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolioTableBody" class="divide-y divide-slate-700/50">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-3 text-center text-xs text-slate-500">
+        NexusTrade Terminal &copy; 2026. Simulator Perdagangan Saham Real-Time. Data diperbarui secara simulasi.
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STATE ---
+        const STOCKS = {
+            BBCA: { name: "Bank Central Asia Tbk", price: 10125, change: 125, changePct: 1.25, high: 10250, low: 10000, vol: 1245300, history: [9900, 9950, 10000, 10050, 10025, 10100, 10125] },
+            BBRI: { name: "Bank Rakyat Indonesia Tbk", price: 5450, change: -50, changePct: -0.91, high: 5550, low: 5400, vol: 2104500, history: [5600, 5550, 5500, 5475, 5500, 5425, 5450] },
+            TLKM: { name: "Telkom Indonesia Tbk", price: 3850, change: 30, changePct: 0.78, high: 3880, low: 3800, vol: 985000, history: [3780, 3800, 3820, 3810, 3830, 3840, 3850] },
+            GOTO: { name: "GoTo Gojek Tokopedia Tbk", price: 88, change: 2, changePct: 2.33, high: 90, low: 85, vol: 15400200, history: [82, 84, 83, 85, 86, 86, 88] },
+            ASII: { name: "Astra International Tbk", price: 5125, change: 0, changePct: 0.00, high: 5200, low: 5100, vol: 640000, history: [5150, 5125, 5100, 5125, 5150, 5125, 5125] }
+        };
+
+        let currentStock = "BBCA";
+        let orderType = "BUY";
+        let chartInstance = null;
+        let chartType = "bar";
+
+        let userState = {
+            cash: 100000000,
+            portfolio: {} // { BBCA: { lots: 10, avgPrice: 10000 } }
+        };
+
+        // Initialize Local Storage
+        function loadUserData() {
+            const saved = localStorage.getItem('nexustrade_user_data');
+            if (saved) {
+                try {
+                    userState = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Error loading saved data", e);
+                }
+            }
+        }
+
+        function saveUserData() {
+            localStorage.setItem('nexustrade_user_data', JSON.stringify(userState));
+            updateUI();
+        }
+
+        // --- CHART MANAGEMENT ---
+        function renderChart() {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            const data = STOCKS[currentStock].history;
+            const labels = ["09:00", "10:00", "11:00", "12:00", "13:30", "14:30", "15:50"];
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const isPositive = STOCKS[currentStock].change >= 0;
+            const borderClr = isPositive ? '#10B981' : '#EF4444';
+            const bgClr = isPositive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+
+            chartInstance = new Chart(ctx, {
+                type: chartType === 'line' ? 'line' : 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `${currentStock} Harga (Rp)`,
+                        data: data,
+                        borderColor: borderClr,
+                        backgroundColor: bgClr,
+                        borderWidth: 2,
+                        fill: chartType === 'line',
+                        tension: 0.3,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(51, 65, 85, 0.4)' },
+                            ticks: { color: '#94A3B8' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(51, 65, 85, 0.4)' },
+                            ticks: { color: '#94A3B8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function setChartType(type) {
+            chartType = type;
+            document.getElementById('btnLine').className = type === 'line' ? "px-2.5 py-1 text-xs font-medium rounded bg-indigo-600 text-white transition" : "px-2.5 py-1 text-xs font-medium rounded text-slate-400 hover:text-white transition";
+            document.getElementById('btnBar').className = type === 'bar' ? "px-2.5 py-1 text-xs font-medium rounded bg-indigo-600 text-white transition" : "px-2.5 py-1 text-xs font-medium rounded text-slate-400 hover:text-white transition";
+            renderChart();
+        }
+
+        // --- ORDER BOOK RENDER ---
+        function renderOrderBook() {
+            const container = document.getElementById('orderBookContainer');
+            container.innerHTML = '';
+
+            const basePrice = STOCKS[currentStock].price;
+            const tick = basePrice > 5000 ? 25 : (basePrice > 2000 ? 10 : 1);
+
+            for (let i = 0; i < 5; i++) {
+                const bidPrice = basePrice - (i * tick);
+                const offerPrice = basePrice + ((i + 1) * tick);
+                
+                const bidVol = Math.floor(Math.random() * 5000) + 100;
+                const offerVol = Math.floor(Math.random() * 5000) + 100;
+
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-2 gap-1 text-[11px] py-1 hover:bg-slate-700/30 cursor-pointer";
+                row.onclick = () => { document.getElementById('orderPriceInput').value = bidPrice; calculateTotal(); };
+                
+                row.innerHTML = `
+                    <div class="flex justify-between px-1 text-emerald-400">
+                        <span class="text-slate-400 font-normal">${bidVol.toLocaleString()}</span>
+                        <span class="font-bold">${bidPrice.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between px-1 text-rose-400 border-l border-slate-700/50">
+                        <span class="font-bold">${offerPrice.toLocaleString()}</span>
+                        <span class="text-slate-400 font-normal">${offerVol.toLocaleString()}</span>
+                    </div>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        // --- RUNNING TRADE SIMULATION ---
+        function addRunningTradeItem(symbol, price, vol, isUp) {
+            const body = document.getElementById('runningTradeBody');
+            const time = new Date().toLocaleTimeString('id-ID', { hour12: false });
+            const colorClass = isUp ? 'text-emerald-400' : 'text-rose-400';
+
+            const row = document.createElement('tr');
+            row.className = "hover:bg-slate-700/20";
+            row.innerHTML = `
+                <td class="py-1 text-slate-400">${time}</td>
+                <td class="py-1 font-bold text-white">${symbol}</td>
+                <td class="py-1 text-right font-semibold ${colorClass}">${price.toLocaleString()}</td>
+                <td class="py-1 text-right text-slate-300">${vol}</td>
+            `;
+
+            body.insertBefore(row, body.firstChild);
+            if (body.children.length > 15) {
+                body.removeChild(body.lastChild);
+            }
+        }
+
+        function simulateTicks() {
+            const keys = Object.keys(STOCKS);
+            const randomSymbol = keys[Math.floor(Math.random() * keys.length)];
+            const stock = STOCKS[randomSymbol];
+            
+            const isUp = Math.random() > 0.48;
+            const diff = isUp ? (stock.price > 5000 ? 25 : 10) : -(stock.price > 5000 ? 25 : 10);
+            
+            stock.price = Math.max(stock.price + diff, 50);
+            stock.vol += Math.floor(Math.random() * 50) + 1;
+
+            if (randomSymbol === currentStock) {
+                stock.history.shift();
+                stock.history.push(stock.price);
+                updateStockHeader();
+                renderOrderBook();
+                renderChart();
+            }
+
+            renderWatchlist();
+            addRunningTradeItem(randomSymbol, stock.price, Math.floor(Math.random() * 200) + 1, isUp);
+            updatePortfolioTable();
+        }
+
+        // --- WATCHLIST RENDER ---
+        function renderWatchlist() {
+            const body = document.getElementById('watchlistBody');
+            body.innerHTML = '';
+
+            Object.keys(STOCKS).forEach(symbol => {
+                const stock = STOCKS[symbol];
+                const isPos = stock.change >= 0;
+                const color = isPos ? 'text-emerald-400' : 'text-rose-400';
+
+                const row = document.createElement('tr');
+                row.className = `cursor-pointer hover:bg-slate-700/40 ${symbol === currentStock ? 'bg-slate-700/50' : ''}`;
+                row.onclick = () => changeStock(symbol);
+                row.innerHTML = `
+                    <td class="py-2 font-bold text-white">${symbol}</td>
+                    <td class="py-2 text-right ${color} font-semibold">Rp ${stock.price.toLocaleString()}</td>
+                    <td class="py-2 text-right ${color} font-bold">${isPos ? '+' : ''}${stock.changePct}%</td>
+                `;
+                body.appendChild(row);
+            });
+        }
+
+        // --- UPDATE STOCK HEADER ---
+        function updateStockHeader() {
+            const stock = STOCKS[currentStock];
+            document.getElementById('chartTitle').innerText = `${currentStock} - ${stock.name}`;
+            document.getElementById('orderPriceInput').value = stock.price;
+
+            const isPos = stock.change >= 0;
+            const colorClass = isPos ? 'text-emerald-400' : 'text-rose-400';
+            const badgeBg = isPos ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400';
+
+            document.getElementById('chartBadge').className = `text-xs px-2 py-0.5 rounded font-semibold ${badgeBg}`;
+            document.getElementById('chartBadge').innerText = `${isPos ? '+' : ''}${stock.changePct}%`;
+
+            document.getElementById('topLastPrice').className = `text-base font-bold ${colorClass}`;
+            document.getElementById('topLastPrice').innerText = `Rp ${stock.price.toLocaleString()}`;
+
+            document.getElementById('topChange').className = `font-semibold ${colorClass}`;
+            document.getElementById('topChange').innerText = `${isPos ? '+' : ''}${stock.changePct}% (${stock.change})`;
+
+            document.getElementById('topHigh').innerText = `Rp ${stock.high.toLocaleString()}`;
+            document.getElementById('topLow').innerText = `Rp ${stock.low.toLocaleString()}`;
+            document.getElementById('topVolume').innerText = `${stock.vol.toLocaleString()} Lot`;
+
+            calculateTotal();
+        }
+
+        // --- CHANGE STOCK ---
+        function changeStock(symbol) {
+            currentStock = symbol;
+            document.getElementById('stockSelector').value = symbol;
+            updateStockHeader();
+            renderOrderBook();
+            renderChart();
+            renderWatchlist();
+        }
+
+        // --- ORDER FORM LOGIC ---
+        function setOrderType(type) {
+            orderType = type;
+            const btnBuy = document.getElementById('tabBuy');
+            const btnSell = document.getElementById('tabSell');
+            const submitBtn = document.getElementById('btnSubmitOrder');
+
+            if (type === 'BUY') {
+                btnBuy.className = "py-1.5 text-xs font-bold rounded-md bg-emerald-600 text-white transition";
+                btnSell.className = "py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition";
+                submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-emerald-900/30";
+                submitBtn.innerText = "KIRIM ORDER BELI";
+            } else {
+                btnBuy.className = "py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition";
+                btnSell.className = "py-1.5 text-xs font-bold rounded-md bg-rose-600 text-white transition";
+                submitBtn.className = "w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-rose-900/30";
+                submitBtn.innerText = "KIRIM ORDER JUAL";
+            }
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const price = parseFloat(document.getElementById('orderPriceInput').value) || 0;
+            const lots = parseInt(document.getElementById('orderLotInput').value) || 0;
+            const totalShares = lots * 100;
+            const grossTotal = price * totalShares;
+            const fee = grossTotal * 0.0015;
+            const grandTotal = orderType === 'BUY' ? grossTotal + fee : grossTotal - fee;
+
+            document.getElementById('orderTotalValue').innerText = `Rp ${Math.round(grandTotal).toLocaleString()}`;
+            document.getElementById('orderFee').innerText = `Rp ${Math.round(fee).toLocaleString()}`;
+
+            // Max Lot Info
+            if (orderType === 'BUY') {
+                const maxBuyLot = Math.floor(userState.cash / (price * 100 * 1.0015));
+                document.getElementById('maxLotDisplay').innerText = `Max Beli: ${maxBuyLot > 0 ? maxBuyLot : 0} Lot`;
+            } else {
+                const ownedLots = userState.portfolio[currentStock] ? userState.portfolio[currentStock].lots : 0;
+                document.getElementById('maxLotDisplay').innerText = `Max Jual: ${ownedLots} Lot`;
+            }
+        }
+
+        function executeTrade(e) {
+            e.preventDefault();
+            const price = parseFloat(document.getElementById('orderPriceInput').value);
+            const lots = parseInt(document.getElementById('orderLotInput').value);
+
+            if (!price || !lots || lots <= 0) {
+                alert("Mohon masukkan jumlah lot dan harga yang valid.");
+                return;
+            }
+
+            const totalShares = lots * 100;
+            const grossTotal = price * totalShares;
+            const fee = grossTotal * 0.0015;
+
+            if (orderType === 'BUY') {
+                const grandTotal = grossTotal + fee;
+                if (grandTotal > userState.cash) {
+                    alert("Saldo Cash Anda tidak mencukupi!");
+                    return;
+                }
+
+                userState.cash -= grandTotal;
+
+                if (!userState.portfolio[currentStock]) {
+                    userState.portfolio[currentStock] = { lots: 0, avgPrice: 0 };
+                }
+
+                const curr = userState.portfolio[currentStock];
+                const totalOldCost = curr.lots * 100 * curr.avgPrice;
+                const totalNewCost = grossTotal;
+                curr.lots += lots;
+                curr.avgPrice = Math.round((totalOldCost + totalNewCost) / (curr.lots * 100));
+
+                alert(`BERHASIL BELI: ${lots} Lot ${currentStock} di harga Rp ${price.toLocaleString()}`);
+
+            } else { // SELL
+                const curr = userState.portfolio[currentStock];
+                if (!curr || curr.lots < lots) {
+                    alert("Jumlah lot yang Anda miliki tidak mencukupi untuk dijual.");
+                    return;
+                }
+
+                const netProceeds = grossTotal - fee;
+                userState.cash += netProceeds;
+                curr.lots -= lots;
+
+                if (curr.lots === 0) {
+                    delete userState.portfolio[currentStock];
+                }
+
+                alert(`BERHASIL JUAL: ${lots} Lot ${currentStock} di harga Rp ${price.toLocaleString()}`);
+            }
+
+            saveUserData();
+        }
+
+        // --- PORTFOLIO TABLE RENDER ---
+        function updatePortfolioTable() {
+            const body = document.getElementById('portfolioTableBody');
+            body.innerHTML = '';
+
+            let totalPortfolioVal = 0;
+            let totalCostVal = 0;
+
+            Object.keys(userState.portfolio).forEach(symbol => {
+                const item = userState.portfolio[symbol];
+                const currentPrice = STOCKS[symbol] ? STOCKS[symbol].price : item.avgPrice;
+                const currentValue = item.lots * 100 * currentPrice;
+                const costValue = item.lots * 100 * item.avgPrice;
+                const pnl = currentValue - costValue;
+                const pnlPct = ((pnl / costValue) * 100).toFixed(2);
+
+                totalPortfolioVal += currentValue;
+                totalCostVal += costValue;
+
+                const isPos = pnl >= 0;
+                const colorClass = isPos ? 'text-emerald-400' : 'text-rose-400';
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-700/30";
+                row.innerHTML = `
+                    <td class="p-2.5 font-bold text-white">${symbol}</td>
+                    <td class="p-2.5 text-right text-slate-200 font-semibold">${item.lots.toLocaleString()} Lot</td>
+                    <td class="p-2.5 text-right text-slate-400">Rp ${item.avgPrice.toLocaleString()}</td>
+                    <td class="p-2.5 text-right font-bold text-white">Rp ${currentPrice.toLocaleString()}</td>
+                    <td class="p-2.5 text-right text-slate-200 font-semibold">Rp ${currentValue.toLocaleString()}</td>
+                    <td class="p-2.5 text-right ${colorClass} font-bold">
+                        Rp ${pnl.toLocaleString()} (${isPos ? '+' : ''}${pnlPct}%)
+                    </td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="changeStock('${symbol}'); setOrderType('SELL');" class="bg-rose-600/80 hover:bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded">
+                            Jual
+                        </button>
+                    </td>
+                `;
+                body.appendChild(row);
+            });
+
+            if (Object.keys(userState.portfolio).length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">Belum ada saham di portofolio Anda. Silahkan lakukan pembelian.</td></tr>`;
+            }
+
+            const totalPnL = totalPortfolioVal - totalCostVal;
+            const totalPnLPct = totalCostVal > 0 ? ((totalPnL / totalCostVal) * 100).toFixed(2) : 0;
+            const pnlColorClass = totalPnL >= 0 ? 'text-emerald-400' : 'text-rose-400';
+
+            document.getElementById('portfolioValue').innerText = `Rp ${totalPortfolioVal.toLocaleString()}`;
+            document.getElementById('portfolioPnL').className = `font-bold ${pnlColorClass}`;
+            document.getElementById('portfolioPnL').innerText = `Rp ${totalPnL.toLocaleString()} (${totalPnL >= 0 ? '+' : ''}${totalPnLPct}%)`;
+        }
+
+        function updateUI() {
+            document.getElementById('cashBalanceDisplay').innerText = `Rp ${Math.round(userState.cash).toLocaleString()}`;
+            updatePortfolioTable();
+            calculateTotal();
+        }
+
+        function resetBalance() {
+            if (confirm("Reset seluruh portofolio dan kembalikan saldo cash ke Rp 100,000,000?")) {
+                userState = { cash: 100000000, portfolio: {} };
+                saveUserData();
+            }
+        }
+
+        // --- INIT APP ---
+        window.onload = function() {
+            lucide.createIcons();
+            loadUserData();
+            renderWatchlist();
+            updateStockHeader();
+            renderOrderBook();
+            renderChart();
+            updateUI();
+
+            // Real-time Tick Interval Simulation
+            setInterval(simulateTicks, 2000);
+        };
+    </script>
+</body>
+</html>
